@@ -61,10 +61,9 @@ public class S3Service {
         }
     }
 
-    public Optional<File> convert(MultipartFile file) throws IOException {
-        String uniqueFileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        File convertFile = new File(uniqueFileName); // Unique name to avoid conflicts
-        if (convertFile.createNewFile()) {
+    public Optional<File> convert(MultipartFile file) throws  IOException {
+        File convertFile = new File(file.getOriginalFilename()); // 업로드한 파일의 이름
+        if(convertFile.createNewFile()) {
             try (FileOutputStream fos = new FileOutputStream(convertFile)) {
                 fos.write(file.getBytes());
             }
