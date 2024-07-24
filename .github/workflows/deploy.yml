@@ -1,0 +1,41 @@
+name: Deploy to cloudtype
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Connect deploy key
+        uses: cloudtype-github-actions/connect@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          ghtoken: ${{ secrets.GHP_TOKEN }}
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          project: acho/minjung
+          stage: main
+          yaml: |
+            name: guru2-backend
+            app: java@17
+            options:
+              ports: 8080
+              env:
+                - name: DB_USERNAME
+                  secret: DB_USERNAME
+                - name: DB_PASSWORD
+                  secret: DB_PASSWORD
+                - name: JWT_TOKEN_KEY
+                  secret: JWT_TOKEN_KEY
+                - name: DB_URL
+                  secret: DB_URL
+              buildenv: []
+            context:
+              git:
+                url: git@github.com:${{ github.repository }}.git
+                ref: ${{ github.ref }}
