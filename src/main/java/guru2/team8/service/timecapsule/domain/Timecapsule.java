@@ -33,6 +33,6 @@ public class Timecapsule {
 
     private LocalDateTime updatedAt; // 수정 날짜
 
-    private LocalDateTime viewableAt; // 열람 가능한 날짜
+    private String viewableAt; // 열람 가능한 날짜
 
 }
