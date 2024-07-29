@@ -20,7 +20,7 @@ public class TimecapsuleReqDto {
     private String content; // 내용
     private String category; // 카테고리
     private String fileName;
-    private LocalDateTime viewableAt;  // 열람가능날짜
+    private String viewableAt;  // 열람가능날짜
 
     private Double latitude; // 위도
     private Double longitude; // 경도
