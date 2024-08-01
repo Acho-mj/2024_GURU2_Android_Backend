@@ -34,6 +34,14 @@ jobs:
                   secret: JWT_TOKEN_KEY
                 - name: DB_URL
                   secret: DB_URL
+                - name: AWS_ACCESSKEYID
+                  secret: AWS_ACCESSKEYID
+                - name: AWS_SECRETKEY
+                  secret: AWS_SECRETKEY
+                - name: AWS_REGION
+                  secret: AWS_REGION
+                - name: AWS_BUCKETNAME
+                  secret: AWS_BUCKETNAME
               buildenv: []
             context:
               git:
