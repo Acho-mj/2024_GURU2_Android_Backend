@@ -116,4 +116,15 @@ public class TimecapsuleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    // 타임캡슐 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTimecapsule(@PathVariable("id") Long id) {
+        try {
+            String message = timecapsuleService.deleteTimecapsule(id);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("타임캡슐 없음");
+        }
+    }
 }

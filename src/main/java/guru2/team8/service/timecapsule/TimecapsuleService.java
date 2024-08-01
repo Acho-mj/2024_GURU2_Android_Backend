@@ -228,4 +228,18 @@ public class TimecapsuleService {
                 .viewableAt(updatedTimecapsule.getViewableAt())
                 .build();
     }
+    
+    // 타임캡슐 삭제
+    public String deleteTimecapsule(Long id) {
+        // 타임캡슐 조회
+        Timecapsule timecapsule = timecapsuleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
+
+        // 타임캡슐 위치 조회 및 삭제
+        capsuleLocationRepository.deleteByTimeCapsuleId(id);
+
+        // 타임캡슐 삭제
+        timecapsuleRepository.delete(timecapsule);
+        return "삭제 완료";
+    }
 }

@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface CapsuleLocationRepository extends JpaRepository<CapsuleLocation, Long> {
     Optional<CapsuleLocation> findByTimeCapsuleId(Long timeCapsuleId);
+    void deleteByTimeCapsuleId(Long id);
 }
