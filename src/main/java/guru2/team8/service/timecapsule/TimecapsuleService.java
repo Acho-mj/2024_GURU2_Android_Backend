@@ -76,11 +76,12 @@ public class TimecapsuleService {
     }
 
     // 타임캡슐 열람가능
-    public List<TimecapsuleDto> getViewableTimecapsules() {
+    public List<TimecapsuleDto> getViewableTimecapsules(String category) {
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
                 .filter(timecapsule -> LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> new TimecapsuleDto(
                         timecapsule.getTitle(),
                         timecapsule.getContent(),
@@ -92,22 +93,22 @@ public class TimecapsuleService {
     }
 
     // 타임캡슐 열람불가능
-    public List<TimecapsuleDto> getUnViewableTimecapsules() {
+    public List<TimecapsuleDto> getUnViewableTimecapsules(String category) {
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
                 .filter(timecapsule -> LocalDateTime.now().isBefore(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> {
                     long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()));
                     return new TimecapsuleDto(
                             timecapsule.getTitle(),
                             null,
-                            null,
+                            timecapsule.getCategory(),
                             null,
                             "D-" + daysLeft
                     );
                 })
                 .collect(Collectors.toList());
     }
-
 }
