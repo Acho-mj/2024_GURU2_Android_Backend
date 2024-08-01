@@ -4,6 +4,7 @@ package guru2.team8.presentation.controller.timecapsule;
 import guru2.team8.service.timecapsule.S3Service;
 import guru2.team8.service.timecapsule.CapsuleLocationService;
 import guru2.team8.service.timecapsule.TimecapsuleService;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,7 +49,19 @@ public class TimecapsuleController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("타임캡슐 작성 실패");
         }
     }
+    
+    // 타입캡슐 열람가능
+    @GetMapping("/view")
+    public ResponseEntity<List<TimecapsuleDto>> viewTimecapsules() {
+        List<TimecapsuleDto> timecapsules = timecapsuleService.getViewableTimecapsules();
+        return ResponseEntity.ok(timecapsules);
+    }
 
-
+    // 타임캡슐 열람불가능
+    @GetMapping("/unviewable")
+    public ResponseEntity<List<TimecapsuleDto>> nonViewableTimecapsules() {
+        List<TimecapsuleDto> timecapsules = timecapsuleService.getUnViewableTimecapsules();
+        return ResponseEntity.ok(timecapsules);
+    }
 
 }

@@ -4,6 +4,7 @@ import guru2.team8.service.member.MemberService;
 import guru2.team8.service.member.domain.dto.MemberResDto;
 import guru2.team8.service.timecapsule.domain.CapsuleLocation;
 import guru2.team8.service.timecapsule.domain.Timecapsule;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import guru2.team8.service.timecapsule.repository.CapsuleLocationRepository;
 import guru2.team8.service.timecapsule.repository.TimecapsuleRepository;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -73,5 +75,39 @@ public class TimecapsuleService {
         return timecapsuleRes;
     }
 
+    // 타임캡슐 열람가능
+    public List<TimecapsuleDto> getViewableTimecapsules() {
+        List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
+
+        return timecapsules.stream()
+                .filter(timecapsule -> LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .map(timecapsule -> new TimecapsuleDto(
+                        timecapsule.getTitle(),
+                        timecapsule.getContent(),
+                        timecapsule.getCategory(),
+                        timecapsule.getFileName(),
+                        timecapsule.getViewableAt()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    // 타임캡슐 열람불가능
+    public List<TimecapsuleDto> getUnViewableTimecapsules() {
+        List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
+
+        return timecapsules.stream()
+                .filter(timecapsule -> LocalDateTime.now().isBefore(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .map(timecapsule -> {
+                    long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()));
+                    return new TimecapsuleDto(
+                            timecapsule.getTitle(),
+                            null,
+                            null,
+                            null,
+                            "D-" + daysLeft
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 
 }
