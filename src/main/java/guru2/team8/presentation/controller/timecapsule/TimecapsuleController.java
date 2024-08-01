@@ -52,15 +52,15 @@ public class TimecapsuleController {
     
     // 타입캡슐 열람가능
     @GetMapping("/view")
-    public ResponseEntity<List<TimecapsuleDto>> viewTimecapsules() {
-        List<TimecapsuleDto> timecapsules = timecapsuleService.getViewableTimecapsules();
+    public ResponseEntity<List<TimecapsuleDto>> viewTimecapsules(@RequestParam("category") String category) {
+        List<TimecapsuleDto> timecapsules = timecapsuleService.getViewableTimecapsules(category);
         return ResponseEntity.ok(timecapsules);
     }
 
     // 타임캡슐 열람불가능
     @GetMapping("/unviewable")
-    public ResponseEntity<List<TimecapsuleDto>> nonViewableTimecapsules() {
-        List<TimecapsuleDto> timecapsules = timecapsuleService.getUnViewableTimecapsules();
+    public ResponseEntity<List<TimecapsuleDto>> unViewableTimecapsules(@RequestParam("category") String category) {
+        List<TimecapsuleDto> timecapsules = timecapsuleService.getUnViewableTimecapsules(category);
         return ResponseEntity.ok(timecapsules);
     }
 
