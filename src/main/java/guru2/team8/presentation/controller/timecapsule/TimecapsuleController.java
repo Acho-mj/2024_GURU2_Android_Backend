@@ -8,6 +8,7 @@ import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +88,43 @@ public class TimecapsuleController {
 
         }catch (Exception e) {
             return new ResponseEntity("타임캡슐 없음", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // 타임캡슐 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<TimecapsuleDto> updateTimeCapsule(
+            @PathVariable("id") Long id,
+            @RequestPart(value = "timecapsuleUpdateDto") TimecapsuleUpdateDto timecapsuleUpdateDto,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        String fileName = "";
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // 이미지 업로드
+            try {
+                // S3 버킷의 timecapsule 디렉토리 안에 저장됨
+                fileName = s3Service.upload(imageFile, "timecapsule");
+            } catch (IOException e) {
+                return new ResponseEntity("이미지 업로드 중 에러", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+        try {
+            TimecapsuleDto updatedTimecapsule = timecapsuleService.updateTimeCapsule(id, timecapsuleUpdateDto, fileName);
+            return ResponseEntity.ok(updatedTimecapsule);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    // 타임캡슐 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTimecapsule(@PathVariable("id") Long id) {
+        try {
+            String message = timecapsuleService.deleteTimecapsule(id);
+            return ResponseEntity.ok(message);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("타임캡슐 없음");
         }
     }
 }

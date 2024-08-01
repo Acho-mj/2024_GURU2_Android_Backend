@@ -3,6 +3,7 @@ package guru2.team8.service.timecapsule.domain.dto;
 import lombok.*;
 
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class TimecapsuleDto {

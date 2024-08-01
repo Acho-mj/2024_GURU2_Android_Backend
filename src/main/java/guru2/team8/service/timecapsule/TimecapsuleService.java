@@ -7,6 +7,7 @@ import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleUpdateDto;
 import guru2.team8.service.timecapsule.repository.CapsuleLocationRepository;
 import guru2.team8.service.timecapsule.repository.TimecapsuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class TimecapsuleService {
     // 타임캡슐 작성
     public TimecapsuleReqDto newTimeCapsule(
             TimecapsuleReqDto timecapsuleReqDto,
-            String fileName){
+            String fileName) {
 
         // 현재 로그인한 멤버 가져오기
         MemberResDto memberResDto = memberService.getMemberInfo();
@@ -116,7 +117,7 @@ public class TimecapsuleService {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     // 열람가능한 타임캡슐 상세조회
     public TimecapsuleDto getDetailTimecapsule(Long id) {
         // 타임캡슐 조회
@@ -201,5 +202,44 @@ public class TimecapsuleService {
         } else {
             throw new RuntimeException("타임캡슐 없음");
         }
+    }
+
+    // 타임캡슐 수정
+    public TimecapsuleDto updateTimeCapsule(Long id, TimecapsuleUpdateDto timecapsuleUpdateDto, String fileName) {
+        // 타임캡슐 조회
+        Timecapsule timecapsule = timecapsuleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
+
+        // 타임캡슐 정보 수정
+        timecapsule.setTitle(timecapsuleUpdateDto.getTitle());
+        timecapsule.setContent(timecapsuleUpdateDto.getContent());
+        timecapsule.setFileName(fileName);
+        timecapsule.setUpdatedAt(LocalDateTime.now());
+
+        // 타임캡슐 저장
+        Timecapsule updatedTimecapsule = timecapsuleRepository.save(timecapsule);
+
+        return TimecapsuleDto.builder()
+                .id(updatedTimecapsule.getId())
+                .title(updatedTimecapsule.getTitle())
+                .content(updatedTimecapsule.getContent())
+                .category(updatedTimecapsule.getCategory())
+                .fileName(updatedTimecapsule.getFileName())
+                .viewableAt(updatedTimecapsule.getViewableAt())
+                .build();
+    }
+    
+    // 타임캡슐 삭제
+    public String deleteTimecapsule(Long id) {
+        // 타임캡슐 조회
+        Timecapsule timecapsule = timecapsuleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
+
+        // 타임캡슐 위치 조회 및 삭제
+        capsuleLocationRepository.deleteByTimeCapsuleId(id);
+
+        // 타임캡슐 삭제
+        timecapsuleRepository.delete(timecapsule);
+        return "삭제 완료";
     }
 }
