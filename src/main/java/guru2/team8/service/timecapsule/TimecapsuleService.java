@@ -5,6 +5,7 @@ import guru2.team8.service.member.domain.dto.MemberResDto;
 import guru2.team8.service.timecapsule.domain.CapsuleLocation;
 import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import guru2.team8.service.timecapsule.repository.CapsuleLocationRepository;
 import guru2.team8.service.timecapsule.repository.TimecapsuleRepository;
@@ -146,6 +147,55 @@ public class TimecapsuleService {
                         null,
                         null,
                         viewableDate
+                );
+            }
+        } else {
+            throw new RuntimeException("타임캡슐 없음");
+        }
+    }
+
+    // 홈화면에서 타임캡슐 조회
+    public TimecapsuleLocationDto getTimecapsule(Long id) {
+        // 타임캡슐 조회
+        Optional<Timecapsule> optionalTimecapsule = timecapsuleRepository.findById(id);
+
+        if (optionalTimecapsule.isPresent()) {
+            Timecapsule timecapsule = optionalTimecapsule.get();
+
+            // viewableAt을 LocalDate로 변환
+            String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
+            long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()));
+
+
+            // 타임캡슐의 위치 정보 조회
+            Optional<CapsuleLocation> optionalCapsuleLocation = capsuleLocationRepository.findByTimeCapsuleId(id);
+            Double latitude = null;
+            Double longitude = null;
+            if (optionalCapsuleLocation.isPresent()) {
+                CapsuleLocation capsuleLocation = optionalCapsuleLocation.get();
+                latitude = capsuleLocation.getLatitude();
+                longitude = capsuleLocation.getLongitude();
+            }
+
+            // 열람 가능 여부 체크
+            if (LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt()))) {
+                return new TimecapsuleLocationDto(
+                        timecapsule.getId(),
+                        timecapsule.getTitle(),
+                        viewableDate,
+                        latitude,
+                        longitude,
+                        daysLeft
+                );
+            } else {
+                // 열람 불가능한 경우에도 타임캡슐의 제목과 날짜를 반환할 수 있음
+                return new TimecapsuleLocationDto(
+                        timecapsule.getId(),
+                        timecapsule.getTitle(),
+                        viewableDate,
+                        latitude,
+                        longitude,
+                        daysLeft
                 );
             }
         } else {

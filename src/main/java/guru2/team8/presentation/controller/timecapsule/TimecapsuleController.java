@@ -6,6 +6,7 @@ import guru2.team8.service.timecapsule.CapsuleLocationService;
 import guru2.team8.service.timecapsule.TimecapsuleService;
 import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -77,4 +78,15 @@ public class TimecapsuleController {
         }
     }
 
+    // 홈화면에서 타임캡슐 조회
+    @GetMapping("/main/{id}")
+    public ResponseEntity<TimecapsuleLocationDto> getTimecapsule(@PathVariable("id") Long id){
+        try{
+            TimecapsuleLocationDto timecapsuleLocationDto = timecapsuleService.getTimecapsule(id);
+            return ResponseEntity.ok(timecapsuleLocationDto);
+
+        }catch (Exception e) {
+            return new ResponseEntity("타임캡슐 없음", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
