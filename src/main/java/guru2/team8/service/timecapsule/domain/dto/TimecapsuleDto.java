@@ -6,6 +6,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TimecapsuleDto {
+    private Long id;
     private String title;
     private String content;
     private String category;

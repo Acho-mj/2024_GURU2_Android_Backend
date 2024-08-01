@@ -4,6 +4,7 @@ package guru2.team8.presentation.controller.timecapsule;
 import guru2.team8.service.timecapsule.S3Service;
 import guru2.team8.service.timecapsule.CapsuleLocationService;
 import guru2.team8.service.timecapsule.TimecapsuleService;
+import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,18 @@ public class TimecapsuleController {
     public ResponseEntity<List<TimecapsuleDto>> unViewableTimecapsules(@RequestParam("category") String category) {
         List<TimecapsuleDto> timecapsules = timecapsuleService.getUnViewableTimecapsules(category);
         return ResponseEntity.ok(timecapsules);
+    }
+
+    // 열람가능한 타임캡슐 상세조회
+    @GetMapping("/viewable/{id}")
+    public ResponseEntity<TimecapsuleDto> getDetailTimecapsule(@PathVariable("id") Long id){
+        try{
+            TimecapsuleDto timecapsuleDto = timecapsuleService.getDetailTimecapsule(id);
+            return ResponseEntity.ok(timecapsuleDto);
+
+        }catch (Exception e) {
+            return new ResponseEntity("타임캡슐 없음", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
