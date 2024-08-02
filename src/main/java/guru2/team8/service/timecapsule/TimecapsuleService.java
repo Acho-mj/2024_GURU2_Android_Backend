@@ -267,7 +267,7 @@ public class TimecapsuleService {
     public String deleteTimecapsule(Long id) {
         // 현재 로그인한 멤버 가져오기
         MemberResDto memberResDto = memberService.getMemberInfo();
-        
+
         // 타임캡슐 조회
         Timecapsule timecapsule = timecapsuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
