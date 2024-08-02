@@ -81,10 +81,15 @@ public class TimecapsuleService {
 
     // 타임캡슐 열람가능
     public List<TimecapsuleDto> getViewableTimecapsules(String category) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+
+
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
                 .filter(timecapsule -> LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> new TimecapsuleDto(
                         timecapsule.getId(),
@@ -99,13 +104,17 @@ public class TimecapsuleService {
 
     // 타임캡슐 열람불가능
     public List<TimecapsuleDto> getUnViewableTimecapsules(String category) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
                 .filter(timecapsule -> LocalDateTime.now().isBefore(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> {
-                    long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()));
+                    long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()))+1;
                     return new TimecapsuleDto(
                             timecapsule.getId(),
                             timecapsule.getTitle(),
@@ -120,11 +129,20 @@ public class TimecapsuleService {
 
     // 열람가능한 타임캡슐 상세조회
     public TimecapsuleDto getDetailTimecapsule(Long id) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+
+
         // 타임캡슐 조회
         Optional<Timecapsule> optionalTimecapsule = timecapsuleRepository.findById(id);
 
         if (optionalTimecapsule.isPresent()) {
             Timecapsule timecapsule = optionalTimecapsule.get();
+
+            // 현재 로그인한 사용자의 타임캡슐인지 확인
+            if (!timecapsule.getMemberId().equals(memberResDto.getId())) {
+                throw new RuntimeException("권한이 없습니다");
+            }
 
             // viewableAt을 LocalDate로 변환
             String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
@@ -157,11 +175,19 @@ public class TimecapsuleService {
 
     // 홈화면에서 타임캡슐 조회
     public TimecapsuleLocationDto getTimecapsule(Long id) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+
         // 타임캡슐 조회
         Optional<Timecapsule> optionalTimecapsule = timecapsuleRepository.findById(id);
 
         if (optionalTimecapsule.isPresent()) {
             Timecapsule timecapsule = optionalTimecapsule.get();
+
+            // 현재 로그인한 사용자의 타임캡슐인지 확인
+            if (!timecapsule.getMemberId().equals(memberResDto.getId())) {
+                throw new RuntimeException("권한이 없습니다");
+            }
 
             // viewableAt을 LocalDate로 변환
             String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
@@ -206,9 +232,17 @@ public class TimecapsuleService {
 
     // 타임캡슐 수정
     public TimecapsuleDto updateTimeCapsule(Long id, TimecapsuleUpdateDto timecapsuleUpdateDto, String fileName) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+
         // 타임캡슐 조회
         Timecapsule timecapsule = timecapsuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
+
+        // 현재 로그인한 사용자의 타임캡슐인지 확인
+        if (!timecapsule.getMemberId().equals(memberResDto.getId())) {
+            throw new RuntimeException("권한이 없습니다");
+        }
 
         // 타임캡슐 정보 수정
         timecapsule.setTitle(timecapsuleUpdateDto.getTitle());
@@ -231,9 +265,17 @@ public class TimecapsuleService {
     
     // 타임캡슐 삭제
     public String deleteTimecapsule(Long id) {
+        // 현재 로그인한 멤버 가져오기
+        MemberResDto memberResDto = memberService.getMemberInfo();
+        
         // 타임캡슐 조회
         Timecapsule timecapsule = timecapsuleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("타임캡슐 없음"));
+
+        // 현재 로그인한 사용자의 타임캡슐인지 확인
+        if (!timecapsule.getMemberId().equals(memberResDto.getId())) {
+            throw new RuntimeException("권한이 없습니다");
+        }
 
         // 타임캡슐 위치 조회 및 삭제
         capsuleLocationRepository.deleteByTimeCapsuleId(id);
