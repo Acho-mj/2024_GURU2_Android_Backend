@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -32,6 +34,7 @@ public class TimecapsuleService {
     private final TimecapsuleRepository timecapsuleRepository;
     private final CapsuleLocationRepository capsuleLocationRepository;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    ZonedDateTime nowInSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
     // 타임캡슐 작성
     public TimecapsuleReqDto newTimeCapsule(
@@ -115,7 +118,7 @@ public class TimecapsuleService {
                 .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> {
-                    long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
+                    long daysLeft = ChronoUnit.DAYS.between(nowInSeoul.toLocalDate(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
                     return new TimecapsuleDto(
                             timecapsule.getId(),
                             timecapsule.getTitle(),
@@ -192,7 +195,7 @@ public class TimecapsuleService {
 
             // viewableAt을 LocalDate로 변환
             String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
-            long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
+            long daysLeft = ChronoUnit.DAYS.between(nowInSeoul.toLocalDate(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
 
 
             // 타임캡슐의 위치 정보 조회
