@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -114,7 +115,7 @@ public class TimecapsuleService {
                 .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> {
-                    long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()))+1;
+                    long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
                     return new TimecapsuleDto(
                             timecapsule.getId(),
                             timecapsule.getTitle(),
@@ -191,7 +192,7 @@ public class TimecapsuleService {
 
             // viewableAt을 LocalDate로 변환
             String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
-            long daysLeft = ChronoUnit.DAYS.between(LocalDateTime.now(), LocalDateTime.parse(timecapsule.getViewableAt()))+1;
+            long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate());
 
 
             // 타임캡슐의 위치 정보 조회
@@ -212,7 +213,7 @@ public class TimecapsuleService {
                         viewableDate,
                         latitude,
                         longitude,
-                        0
+                        daysLeft
                 );
             } else {
                 // 열람 불가능한 경우에도 타임캡슐의 제목과 날짜를 반환할 수 있음
