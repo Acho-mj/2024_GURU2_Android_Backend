@@ -213,7 +213,7 @@ public class TimecapsuleService {
                         viewableDate,
                         latitude,
                         longitude,
-                        daysLeft
+                        0
                 );
             } else {
                 // 열람 불가능한 경우에도 타임캡슐의 제목과 날짜를 반환할 수 있음
