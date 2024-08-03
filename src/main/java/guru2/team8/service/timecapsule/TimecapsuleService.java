@@ -92,7 +92,8 @@ public class TimecapsuleService {
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
-                .filter(timecapsule -> LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt())))
+                // 현재 날짜가 타임캡슐의 열람 가능한 날짜보다 이전이거나 동일한 경우 열람 가능
+                .filter(timecapsule -> !nowInSeoul.toLocalDate().isBefore(LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate()))
                 .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> new TimecapsuleDto(
@@ -114,7 +115,7 @@ public class TimecapsuleService {
         List<Timecapsule> timecapsules = timecapsuleRepository.findAll();
 
         return timecapsules.stream()
-                .filter(timecapsule -> LocalDateTime.now().isBefore(LocalDateTime.parse(timecapsule.getViewableAt())))
+                .filter(timecapsule -> nowInSeoul.toLocalDate().isBefore(LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate()))
                 .filter(timecapsule -> timecapsule.getMemberId().equals(memberResDto.getId()))
                 .filter(timecapsule -> "전체".equals(category) || category.equals(timecapsule.getCategory()))
                 .map(timecapsule -> {
@@ -152,7 +153,7 @@ public class TimecapsuleService {
             String viewableDate = LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate().format(dateFormatter);
 
             // 열람 가능 여부 체크
-            if (LocalDateTime.now().isAfter(LocalDateTime.parse(timecapsule.getViewableAt()))) {
+            if (!nowInSeoul.toLocalDate().isBefore(LocalDateTime.parse(timecapsule.getViewableAt()).toLocalDate())) {
                 return new TimecapsuleDto(
                         timecapsule.getId(),
                         timecapsule.getTitle(),
