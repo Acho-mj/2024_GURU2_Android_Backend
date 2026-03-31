@@ -7,6 +7,7 @@ import guru2.team8.service.timecapsule.TimecapsuleService;
 import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleMapDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -89,6 +90,23 @@ public class TimecapsuleController {
         }catch (Exception e) {
             return new ResponseEntity("타임캡슐 없음", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // 지도에서 현재 위치 기반 타임캡슐 조회 (ElasticSearch geo_distance)
+    // scope: ME | FOLLOWING | BOTH
+    @GetMapping("/map")
+    public ResponseEntity<List<TimecapsuleMapDto>> mapTimecapsules(
+            @RequestParam("latitude") double latitude,
+            @RequestParam("longitude") double longitude,
+            @RequestParam(value = "radiusMeters", defaultValue = "2000") double radiusMeters,
+            @RequestParam(value = "scope", defaultValue = "BOTH") String scope,
+            @RequestParam(value = "category", defaultValue = "전체") String category,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "50") int size
+    ) {
+        return ResponseEntity.ok(
+                timecapsuleService.getMapTimecapsules(latitude, longitude, radiusMeters, scope, category, page, size)
+        );
     }
 
     // 타임캡슐 수정

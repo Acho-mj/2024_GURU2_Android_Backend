@@ -38,3 +38,5 @@ out/
 
 ### .properties ###
 src/main/resources/application-local.properties
+gradlew.bat
+gradlew

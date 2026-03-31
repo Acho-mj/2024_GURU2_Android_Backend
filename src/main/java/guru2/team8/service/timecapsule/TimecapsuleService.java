@@ -2,14 +2,18 @@ package guru2.team8.service.timecapsule;
 
 import guru2.team8.service.member.MemberService;
 import guru2.team8.service.member.domain.dto.MemberResDto;
+import guru2.team8.service.follow.FollowService;
 import guru2.team8.service.timecapsule.domain.CapsuleLocation;
 import guru2.team8.service.timecapsule.domain.Timecapsule;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleLocationDto;
+import guru2.team8.service.timecapsule.domain.dto.TimecapsuleMapDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleReqDto;
 import guru2.team8.service.timecapsule.domain.dto.TimecapsuleUpdateDto;
 import guru2.team8.service.timecapsule.repository.CapsuleLocationRepository;
 import guru2.team8.service.timecapsule.repository.TimecapsuleRepository;
+import guru2.team8.service.timecapsule.search.TimecapsuleGeoSearchService;
+import guru2.team8.service.timecapsule.search.TimecapsuleIndexService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +28,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,8 +37,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TimecapsuleService {
     private final MemberService memberService;
+    private final FollowService followService;
     private final TimecapsuleRepository timecapsuleRepository;
     private final CapsuleLocationRepository capsuleLocationRepository;
+    private final TimecapsuleIndexService timecapsuleIndexService;
+    private final TimecapsuleGeoSearchService timecapsuleGeoSearchService;
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     ZonedDateTime nowInSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
 
@@ -68,7 +77,10 @@ public class TimecapsuleService {
                 .build();
 
         // 캡슐 위치 저장
-        capsuleLocationRepository.save(capsuleLocation);
+        CapsuleLocation savedLocation = capsuleLocationRepository.save(capsuleLocation);
+
+        // ES 인덱스 동기화 (작성 직후 지도/검색에서 바로 조회 가능)
+        timecapsuleIndexService.upsert(savedTimecapsule, savedLocation);
 
         TimecapsuleReqDto timecapsuleRes = TimecapsuleReqDto.builder()
                 .title(timecapsule.getTitle())
@@ -76,8 +88,8 @@ public class TimecapsuleService {
                 .category(timecapsule.getCategory())
                 .fileName(timecapsule.getFileName())
                 .viewableAt(timecapsule.getViewableAt())
-                .latitude(capsuleLocation.getLatitude())
-                .longitude(capsuleLocation.getLongitude())
+                .latitude(savedLocation.getLatitude())
+                .longitude(savedLocation.getLongitude())
                 .build();
 
         return timecapsuleRes;
@@ -258,6 +270,10 @@ public class TimecapsuleService {
         // 타임캡슐 저장
         Timecapsule updatedTimecapsule = timecapsuleRepository.save(timecapsule);
 
+        // 위치는 변경되지 않는다고 가정(현재 UpdateDto에 위/경도 없음). 그래도 ES의 title/category 변경을 동기화.
+        capsuleLocationRepository.findByTimeCapsuleId(id)
+                .ifPresent(location -> timecapsuleIndexService.upsert(updatedTimecapsule, location));
+
         return TimecapsuleDto.builder()
                 .id(updatedTimecapsule.getId())
                 .title(updatedTimecapsule.getTitle())
@@ -287,6 +303,44 @@ public class TimecapsuleService {
 
         // 타임캡슐 삭제
         timecapsuleRepository.delete(timecapsule);
+
+        // ES 인덱스 삭제
+        timecapsuleIndexService.deleteByTimecapsuleId(id);
         return "삭제 완료";
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimecapsuleMapDto> getMapTimecapsules(
+            double latitude,
+            double longitude,
+            double radiusMeters,
+            String scope,
+            String category,
+            int page,
+            int size
+    ) {
+        MemberResDto me = memberService.getMemberInfo();
+
+        String normalizedScope = (scope == null ? "BOTH" : scope.trim().toUpperCase());
+        Set<Long> allowedMemberIds = new HashSet<>();
+
+        switch (normalizedScope) {
+            case "ME" -> allowedMemberIds.add(me.getId());
+            case "FOLLOWING" -> allowedMemberIds.addAll(followService.getMyFollowingIds());
+            case "BOTH" -> {
+                allowedMemberIds.add(me.getId());
+                allowedMemberIds.addAll(followService.getMyFollowingIds());
+            }
+            default -> throw new IllegalArgumentException("scope must be one of ME, FOLLOWING, BOTH");
+        }
+
+        // 팔로잉이 0명인 FOLLOWING일 경우: 빈 결과
+        if (allowedMemberIds.isEmpty()) {
+            return List.of();
+        }
+
+        return timecapsuleGeoSearchService.searchWithinRadius(
+                latitude, longitude, radiusMeters, allowedMemberIds, category, page, size
+        );
     }
 }

@@ -23,13 +23,17 @@ public class S3Service {
 
     private final AmazonS3 amazonS3Client;
 
-    @Value("${aws.bucketName}")
+    @Value("${aws.bucketName:}")
     private String bucket;
 
 
     // MultipartFile을 전달받아 File로 전환한 후 S3에 업로드
     // dirName의 디렉토리가 S3 Bucket 내부에 생성됨
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
+        if (bucket == null || bucket.isBlank()) {
+            // AWS 설정이 없는 환경(로컬 데모/포트폴리오 실행)에서는 이미지 업로드를 비활성화합니다.
+            throw new IllegalStateException("aws.bucketName 이 설정되어 있지 않아 S3 업로드를 수행할 수 없습니다.");
+        }
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
         return upload(uploadFile, dirName);

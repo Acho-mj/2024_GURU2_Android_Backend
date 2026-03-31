@@ -14,13 +14,13 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration
 public class S3Config {
-    @Value("${aws.accessKeyId}")
+    @Value("${aws.accessKeyId:}")
     private String accessKey;
 
-    @Value("${aws.secretKey}")
+    @Value("${aws.secretKey:}")
     private String secretKey;
 
-    @Value("${aws.region}")
+    @Value("${aws.region:ap-northeast-2}")
     private String region;
 
     @Bean
